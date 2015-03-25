@@ -1,0 +1,15 @@
+{
+  "style": "BigTextStyle",
+  "BigTextStyle": {
+    "bigContentTitle": "Market News",
+    "bigText": "Thank you, Janet Yellen! Stocks surge after Fed",
+    "summary": ""
+  },
+  "smallIcon": "sm_icon",
+  "actions": [
+    {
+      "actionName": "Open on phone",
+      "intentName": "http://rss.cnn.com/~r/rss/money_markets/~3/y2nzrXhrAMM/index.html"
+    }
+  ]
+}

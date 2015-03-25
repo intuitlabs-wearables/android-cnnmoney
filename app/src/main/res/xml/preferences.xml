@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fragment="com.intuitlabs.android.moneywatch.SettingsFragment"
+    android:title="NewsWatch Preferences">
+
+    <PreferenceCategory
+        android:summary="Select from feeds that provide news"
+        android:title="Sources">
+        <MultiSelectListPreference
+            android:defaultValue="@array/feed_defaults"
+            android:dialogTitle="News - Sources"
+            android:entries="@array/feed_names"
+            android:entryValues="@array/feed_values"
+            android:key="@string/preference_key_sources"
+            android:summary=""
+            android:title="Select from avail. news sources"></MultiSelectListPreference>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:summary=""
+        android:title="Synchronize Settings">
+        <Preference
+            android:key="@string/preference_key_sync"
+            android:summary="Resend source selection"
+            android:title="Sync" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:summary="Don't show notifications"
+        android:title="Quiet Period">
+        <SwitchPreference
+            android:key="@string/preference_key_ts"
+            android:summary=""
+            android:title="Enable quiet period"></SwitchPreference>
+        <com.intuitlabs.android.moneywatch.TimePreference
+            android:dependency="@string/preference_key_ts"
+            android:key="@string/preference_key_t0"
+            android:summary="Set a time for the quiet period to start"
+            android:title="Quiet Period Start" />
+        <com.intuitlabs.android.moneywatch.TimePreference
+            android:dependency="@string/preference_key_ts"
+            android:key="@string/preference_key_t1"
+            android:summary="Set a time for the quiet period to end"
+            android:title="Quiet Period End" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary=""
+        android:title="Simulate Push">
+        <Preference
+            android:key="@string/preference_key_demo"
+            android:summary="Create a Notification"
+            android:title="Demo" />
+    </PreferenceCategory>
+</PreferenceScreen>

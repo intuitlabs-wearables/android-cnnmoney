@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">MoneyWatch</string>
+    <string name="action_settings">Settings</string>
+
+    <string-array name="feed_names">
+        <item>Market news from Wall Street</item>
+        <item>Personal Finance News</item>
+        <item>Mutual Fund News and Advice</item>
+    </string-array>
+    <string-array name="feed_values">
+        <item>market</item>
+        <item>pf</item>
+        <item>funds</item>
+    </string-array>
+    <string-array name="feed_defaults">
+        <item>market</item>
+        <item>pf</item>
+    </string-array>
+
+    <!-- Preference Keys -->
+    <string name="preference_key_userid">userid</string>
+    <string name="preference_key_sources">sources</string>
+    <string name="preference_key_sync">sync</string>
+    <string name="preference_key_demo">demo</string>
+
+    <string name="preference_key_ts">ts</string>
+    <string name="preference_key_t0">t0</string>
+    <string name="preference_key_t1">t1</string>
+
+    <!-- Dialog Resources -->
+    <string name="dialog_positive">Set</string>
+    <string name="dialog_negative">Cancel</string>
+
+</resources>

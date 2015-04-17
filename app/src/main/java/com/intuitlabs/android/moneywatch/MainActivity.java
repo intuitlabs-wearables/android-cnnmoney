@@ -27,17 +27,21 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.intuit.intuitwear.notifications.IWearNotificationContent;
 
 import java.util.UUID;
@@ -95,6 +99,7 @@ public class MainActivity extends Activity {
         }
     }
 
+
     /**
      * @inheritDoc
      */
@@ -141,46 +146,80 @@ public class MainActivity extends Activity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
-        private TextView mTitle;
-        private TextView mText;
-        private ImageButton mOpen;
+    public static class PlaceholderFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
+        private ListView listView;
 
+        /**
+         * @inheritDoc
+         */
         @Override
         public View onCreateView(final LayoutInflater inflater,
                                  final ViewGroup container,
                                  final Bundle savedInstanceState) {
-
             // Inflate the layout for this fragment
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-            mTitle = (TextView) rootView.findViewById(R.id.title);
-            mText = (TextView) rootView.findViewById(R.id.text);
-            mOpen = (ImageButton) rootView.findViewById(R.id.btnOpen);
-            // Tell the GCMIntentService about this Fragment, so that an incoming message
-            // can immediately displayed, using the showMessage method.
-            GCMIntentService.setHandler(this);
+            listView = (ListView) rootView.findViewById(R.id.listView);
             return rootView;
         }
 
+        /**
+         * @inheritDoc
+         */
+        @Override
+        public void onResume() {
+            super.onResume();
+            listView.setAdapter(new LstAdapter<>(App.getContext(), R.layout.list_item, Archive.getInstance().getItems()));
+            PreferenceManager.getDefaultSharedPreferences(App.getContext()).registerOnSharedPreferenceChangeListener(this);
+        }
 
         /**
-         * Show the title and text content of the notification.
-         *
-         * @param content {@link IWearNotificationContent} to be placed into the main layout's text view
+         * @inheritDoc
          */
-        public void showMessage(final IWearNotificationContent content) {
+        @Override
+        public void onPause() {
+            PreferenceManager.getDefaultSharedPreferences(App.getContext()).unregisterOnSharedPreferenceChangeListener(this);
+            super.onPause();
+        }
 
-            mTitle.setText(content.getBigTextStyle().getBigContentTitle());
-            mText.setText(content.getBigTextStyle().getBigText());
-            mOpen.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    final Uri uri = Uri.parse(content.getActions().get(0).getIntentName());
-                    startActivity(new Intent(Intent.ACTION_VIEW).setData(uri));
+        public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, final String key) {
+            if (key.equals(getString(R.string.preference_key_archive))) {
+                listView.setAdapter(new LstAdapter<>(App.getContext(), R.layout.list_item, Archive.getInstance().getItems()));
+            }
+        }
+
+        class LstAdapter<T> extends ArrayAdapter<T> {
+            /**
+             * @inheritDoc
+             */
+            LstAdapter(Context context, int resource, T[] objects) {
+                super(context, resource, objects);
+            }
+
+            /**
+             * @inheritDoc
+             */
+            @Override
+            public View getView(final int position, final View convertView, final ViewGroup parent) {
+                final LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                final View rowView = inflater.inflate(R.layout.list_item, parent, false);
+                final TextView titleView = (TextView) rowView.findViewById(R.id.title);
+                final TextView textView = (TextView) rowView.findViewById(R.id.text);
+                final String json = String.valueOf(getItem(position));
+                final IWearNotificationContent content = new Gson().fromJson(json, IWearNotificationContent.class);
+                if (content != null) {
+                    titleView.setText(content.getBigTextStyle().getBigContentTitle());
+                    textView.setText(content.getBigTextStyle().getBigText());
+                    rowView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(final View v) {
+                            final Uri uri = Uri.parse(content.getActions().get(0).getIntentName());
+                            startActivity(new Intent(Intent.ACTION_VIEW).setData(uri));
+                        }
+                    });
                 }
-            });
+                return rowView;
+            }
         }
     }
 }

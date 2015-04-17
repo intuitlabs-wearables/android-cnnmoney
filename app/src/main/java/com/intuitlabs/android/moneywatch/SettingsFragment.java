@@ -24,7 +24,6 @@ package com.intuitlabs.android.moneywatch;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Message;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -246,12 +245,14 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
      */
     @Override
     public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, final String key) {
-        if (key.equals(getString(R.string.preference_key_sources))) {
-            Log.d(LOG_TAG, "Source selection changed");
-            syncGroups(this.getActivity().getApplicationContext());
-        } else if (key.equals(getString(R.string.preference_key_sync))) {
-            boolean inSync = getPreferenceScreen().getSharedPreferences().getBoolean(getString(R.string.preference_key_sync), false);
-            findPreference(getString(R.string.preference_key_sync)).setEnabled(!inSync);
+        if (isAdded()) {
+            if (key.equals(getString(R.string.preference_key_sources))) {
+                Log.d(LOG_TAG, "Source selection changed");
+                syncGroups(this.getActivity().getApplicationContext());
+            } else if (key.equals(getString(R.string.preference_key_sync))) {
+                boolean inSync = getPreferenceScreen().getSharedPreferences().getBoolean(getString(R.string.preference_key_sync), false);
+                findPreference(getString(R.string.preference_key_sync)).setEnabled(!inSync);
+            }
         }
     }
 
@@ -264,20 +265,12 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                 @Override
                 public void run() {
                     super.run();
-                    final String message = PreferenceManager.getDefaultSharedPreferences(context).getString("lastMsg",ContentBuilder.getAsset(context, "notification.json"));
+                    final String message = ContentBuilder.getAsset(context, "notification.json");
+                    Archive.getInstance().addItem(message);
                     try {
                         Log.v(LOG_TAG, "Not inside quiet time, so let's display a notification :" + message);
                         // Create a Notification
                         IWearNotificationSender.Factory.getsInstance().createNotificationSender(IWearNotificationType.ANDROID, context, message).sendNotification(context);
-
-                        // Show the content on the phone screen if the MainActivity is currently visible.
-                        if (GCMIntentService.handler != null) {
-                            final Message m = new Message();
-                            final Bundle b = new Bundle();
-                            b.putString(GCMIntentService.MSG_KEY, message);
-                            m.setData(b);
-                            GCMIntentService.handler.sendMessage(m);
-                        }
 
                     } catch (IntuitWearException e) {
                         Log.e(LOG_TAG, e.toString());

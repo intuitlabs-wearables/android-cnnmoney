@@ -24,24 +24,16 @@ package com.intuitlabs.android.moneywatch;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.gcm.GCMBaseIntentService;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.intuit.intuitwear.exceptions.IntuitWearException;
-import com.intuit.intuitwear.notifications.IWearNotificationContent;
 import com.intuit.intuitwear.notifications.IWearNotificationSender;
 import com.intuit.intuitwear.notifications.IWearNotificationType;
 import com.intuit.mobile.png.sdk.PushNotificationsV2;
 import com.intuit.mobile.png.sdk.UserTypeEnum;
 import com.intuit.mobile.png.sdk.callback.RegisterUserCallback;
-
-import java.lang.ref.WeakReference;
 
 
 /**
@@ -51,13 +43,10 @@ import java.lang.ref.WeakReference;
  */
 public class GCMIntentService extends GCMBaseIntentService {
 
-    static final String MSG_KEY = GCMIntentService.class.getName() + "_MSG_KEY";
     private static final String GCM_PROJECT_NUMBER = App.getContext().getString(R.string.GCM_PROJECT_NUMBER);
     private static final String INTUIT_SENDER_ID = App.getContext().getString(R.string.INTUIT_SENDER_ID);
     private static final String LOG_TAG = GCMIntentService.class.getSimpleName();
     private static final String REG_URL = "https://png.d2d.msg.intuit.com";
-
-    static MyHandler handler;
 
     private static String userid;
     private static String[] groups;
@@ -87,15 +76,6 @@ public class GCMIntentService extends GCMBaseIntentService {
         PushNotificationsV2.initialize(INTUIT_SENDER_ID, GCM_PROJECT_NUMBER, environment);
         PushNotificationsV2.setLogging(true);
         PushNotificationsV2.registerForGCMNotifications(context);
-    }
-
-    /**
-     * Handler which can be used to display a message, in case this app is running and in teh foreground.
-     *
-     * @param a {@link MainActivity} activity, which provides the capability to show a message.
-     */
-    public static void setHandler(final MainActivity.PlaceholderFragment a) {
-        handler = new MyHandler(a);
     }
 
     /**
@@ -140,23 +120,16 @@ public class GCMIntentService extends GCMBaseIntentService {
      */
     @Override
     protected void onMessage(final Context context, final Intent intent) {
-        Log.v(LOG_TAG, "Received onMessage call");
+        final String message = intent.getStringExtra("payload").replaceAll("[\r\n]+$", "");
+        Archive.getInstance().addItem(message);
+        Log.v(LOG_TAG, "Received a notification: " + message);
+
         if (!TimePreference.isNowQuietTime(context)) {
-            final String message = intent.getStringExtra("payload").replaceAll("[\r\n]+$", "");
-            Log.v(LOG_TAG, "Not inside quiet time, so let's display a notification :" + message);
-            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("lastMsg", message).apply();
+            Log.v(LOG_TAG, "Not inside quiet time, so let's send a new notification");
             try {
                 IWearNotificationSender.Factory.getsInstance().createNotificationSender(IWearNotificationType.ANDROID, this, message).sendNotification(this);
             } catch (IntuitWearException e) {
                 Log.e(LOG_TAG, e.toString());
-            }
-
-            if (handler != null) {
-                Message m = new Message();
-                Bundle b = new Bundle();
-                b.putString(MSG_KEY, message);
-                m.setData(b);
-                handler.sendMessage(m);
             }
         }
     }
@@ -181,35 +154,5 @@ public class GCMIntentService extends GCMBaseIntentService {
     @Override
     protected void onUnregistered(final Context context, final String msg) {
         Log.i(LOG_TAG, "Received unregistered call");
-    }
-
-    /**
-     * Handler that can display incoming messages, if the registered Activity is still around.
-     */
-    static class MyHandler extends Handler {
-        //Using a weak reference means we won't prevent garbage collection
-        private final WeakReference<MainActivity.PlaceholderFragment> myClassWeakReference;
-
-        public MyHandler(final MainActivity.PlaceholderFragment myClassInstance) {
-            myClassWeakReference = new WeakReference<>(myClassInstance);
-        }
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleMessage(final Message msg) {
-            MainActivity.PlaceholderFragment fragment = myClassWeakReference.get();
-            if (fragment != null && msg != null) {
-                final IWearNotificationContent content;
-                try {
-                    content = new Gson().fromJson(msg.getData().getString(MSG_KEY, ""), IWearNotificationContent.class);
-                    fragment.showMessage(content);
-                } catch (JsonSyntaxException e) {
-                    Log.e(LOG_TAG, "IWearNotificationContent instantiation failed" + e.toString());
-                }
-            }
-        }
     }
 }

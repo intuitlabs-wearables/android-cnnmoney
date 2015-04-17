@@ -23,6 +23,8 @@
     <string name="preference_key_sync">sync</string>
     <string name="preference_key_demo">demo</string>
 
+    <string name="preference_key_archive">archive</string>
+
     <string name="preference_key_ts">ts</string>
     <string name="preference_key_t0">t0</string>
     <string name="preference_key_t1">t1</string>

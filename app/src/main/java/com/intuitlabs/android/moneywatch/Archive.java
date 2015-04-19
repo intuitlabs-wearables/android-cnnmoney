@@ -1,5 +1,3 @@
-package com.intuitlabs.android.moneywatch;
-
 /*
  * Copyright (c) 2015 Intuit Inc.
  *
@@ -21,6 +19,7 @@ package com.intuitlabs.android.moneywatch;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package com.intuitlabs.android.moneywatch;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;

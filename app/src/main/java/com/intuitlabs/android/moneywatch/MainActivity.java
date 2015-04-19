@@ -21,8 +21,6 @@
  */
 package com.intuitlabs.android.moneywatch;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
@@ -31,7 +29,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Patterns;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,12 +43,12 @@ import com.google.gson.Gson;
 import com.intuit.intuitwear.notifications.IWearNotificationContent;
 
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * The Main activity of this app is switching between the Settings and Placeholder fragment.
  */
 public class MainActivity extends Activity {
+    private static final String LOG_TAG = MainActivity.class.getName();
     /**
      * Tag to identify a fragment
      */
@@ -59,20 +57,10 @@ public class MainActivity extends Activity {
     /**
      * Returns a unique id to address the user from the remote side.
      *
-     * @param context {@link Context}
-     * @return {@link String} unique id, most likely, the user's email address.
+     * @return {@link String} unique id
      */
-    private static String getId(final Context context) {
-        final Pattern emailPattern = Patterns.EMAIL_ADDRESS;
-        final Account[] accounts = AccountManager.get(context).getAccounts();
-        String id = UUID.randomUUID().toString();
-        for (Account account : accounts) {
-            if (emailPattern.matcher(account.name).matches()) {
-                id = account.name;
-                break;
-            }
-        }
-        return id;
+    private static String getId() {
+        return UUID.randomUUID().toString();
     }
 
     /**
@@ -89,7 +77,7 @@ public class MainActivity extends Activity {
             getActionBar().setDisplayShowHomeEnabled(true);
         }
         if (savedInstanceState == null) {
-            GCMIntentService.register(getApplicationContext(), MainActivity.getId(this));
+            GCMIntentService.register(getApplicationContext(), MainActivity.getId());
             if (findViewById(R.id.container) != null) {
                 getFragmentManager().beginTransaction()
                         .replace(R.id.container, new PlaceholderFragment())
@@ -213,8 +201,12 @@ public class MainActivity extends Activity {
                     rowView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(final View v) {
-                            final Uri uri = Uri.parse(content.getActions().get(0).getIntentName());
-                            startActivity(new Intent(Intent.ACTION_VIEW).setData(uri));
+                            try {
+                                final Uri uri = Uri.parse(content.getActions().get(0).getExtras()[0]);
+                                startActivity(new Intent(Intent.ACTION_VIEW).setData(uri));
+                            } catch (Exception e) {
+                                Log.i(LOG_TAG, e.toString());
+                            }
                         }
                     });
                 }

@@ -42,8 +42,6 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.intuit.intuitwear.notifications.IWearNotificationContent;
 
-import java.util.UUID;
-
 /**
  * The Main activity of this app is switching between the Settings and Placeholder fragment.
  */
@@ -53,15 +51,6 @@ public class MainActivity extends Activity {
      * Tag to identify a fragment
      */
     private static final String FRAG_TAG_SETTINGS = "tag";
-
-    /**
-     * Returns a unique id to address the user from the remote side.
-     *
-     * @return {@link String} unique id
-     */
-    private static String getId() {
-        return UUID.randomUUID().toString();
-    }
 
     /**
      * Setting up the main ui, i.e. loading an image into the PlaceholderFragment.
@@ -77,13 +66,15 @@ public class MainActivity extends Activity {
             getActionBar().setDisplayShowHomeEnabled(true);
         }
         if (savedInstanceState == null) {
-            GCMIntentService.register(getApplicationContext(), MainActivity.getId());
+            GCMIntentService.register(App.getId());
             if (findViewById(R.id.container) != null) {
-                getFragmentManager().beginTransaction()
-                        .replace(R.id.container, new PlaceholderFragment())
+                getFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.container, new NotificationArchiveFragment())
                         .commit();
             }
-            SettingsFragment.syncIfNeeded(getApplicationContext());
+            // todo refactor this to a better place
+            SettingsFragment.syncIfNeeded(App.getContext());
         }
     }
 
@@ -92,17 +83,21 @@ public class MainActivity extends Activity {
      * @inheritDoc
      */
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(final Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     /**
-     * @inheritDoc
+     * Besides the Home button, the only thing added into the actionbar is the settings icon.
+     * Here we implement to either show(add) or hide(pop) the {@link SettingsFragment} depending on
+     * its current visibility status.
+     *
+     * @param item {@link MenuItem}
      */
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -132,11 +127,11 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * A placeholder fragment containing a simple view.
+     * A fragment containing a simple list view of archived notifications.
      */
-    public static class PlaceholderFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
+    public static class NotificationArchiveFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-        private ListView listView;
+        private ListView mListView;
 
         /**
          * @inheritDoc
@@ -146,8 +141,8 @@ public class MainActivity extends Activity {
                                  final ViewGroup container,
                                  final Bundle savedInstanceState) {
             // Inflate the layout for this fragment
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            listView = (ListView) rootView.findViewById(R.id.listView);
+            final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            mListView = (ListView) rootView.findViewById(R.id.listView);
             return rootView;
         }
 
@@ -157,7 +152,7 @@ public class MainActivity extends Activity {
         @Override
         public void onResume() {
             super.onResume();
-            listView.setAdapter(new LstAdapter<>(App.getContext(), R.layout.list_item, Archive.getInstance().getItems()));
+            mListView.setAdapter(new LstAdapter<>(App.getContext(), R.layout.list_item, Archive.getInstance().getItems()));
             PreferenceManager.getDefaultSharedPreferences(App.getContext()).registerOnSharedPreferenceChangeListener(this);
         }
 
@@ -172,7 +167,7 @@ public class MainActivity extends Activity {
 
         public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, final String key) {
             if (key.equals(getString(R.string.preference_key_archive))) {
-                listView.setAdapter(new LstAdapter<>(App.getContext(), R.layout.list_item, Archive.getInstance().getItems()));
+                mListView.setAdapter(new LstAdapter<>(App.getContext(), R.layout.list_item, Archive.getInstance().getItems()));
             }
         }
 

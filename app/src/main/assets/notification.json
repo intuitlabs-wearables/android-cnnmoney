@@ -10,7 +10,7 @@
     {
       "actionName": "Open on phone",
       "intentName": "com.intuitlabs.android.moneywatch.DismissAndView",
-      "extras": ["http://rss.cnn.com/~r/rss/money_markets/~3/y2nzrXhrAMM/index.html"]
+      "extras": ["http://money.cnn.com/data/markets/"]
     }
   ]
 }

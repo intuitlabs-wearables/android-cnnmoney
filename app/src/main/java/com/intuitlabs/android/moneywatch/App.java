@@ -21,8 +21,14 @@
  */
 package com.intuitlabs.android.moneywatch;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Application;
 import android.content.Context;
+import android.util.Patterns;
+
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * The Application class got only implemented to provide access to the {@link Context} from static code,
@@ -32,8 +38,26 @@ public class App extends Application {
 
     private static Context mContext;
 
-    public static Context getContext() {
+    static Context getContext() {
         return mContext;
+    }
+
+    /**
+     * Returns a unique id to address the user from the remote side.
+     *
+     * @return {@link String} unique id, most likely, the user's email address.
+     */
+    static String getId() {
+        final Pattern emailPattern = Patterns.EMAIL_ADDRESS;
+        final Account[] accounts = AccountManager.get(mContext).getAccounts();
+        String id = UUID.randomUUID().toString();
+        for (Account account : accounts) {
+            if (emailPattern.matcher(account.name).matches()) {
+                id = account.name;
+                break;
+            }
+        }
+        return id;
     }
 
     @Override

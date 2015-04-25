@@ -14,7 +14,7 @@
             android:entryValues="@array/feed_values"
             android:key="@string/preference_key_sources"
             android:summary=""
-            android:title="Select from avail. news sources"></MultiSelectListPreference>
+            android:title="Select from avail. news sources" />
     </PreferenceCategory>
     <PreferenceCategory
         android:summary=""
@@ -25,12 +25,21 @@
             android:title="Sync" />
     </PreferenceCategory>
     <PreferenceCategory
+        android:summary="Store the most recent headlines and links"
+        android:title="Archive">
+        <com.intuitlabs.android.moneywatch.NumberPreference
+            android:key="@string/preference_key_size"
+            android:defaultValue="12"
+            android:summary="Retaining headlines and links"
+            android:title="Set archive size" />
+    </PreferenceCategory>
+    <PreferenceCategory
         android:summary="Don't show notifications"
         android:title="Quiet Period">
         <SwitchPreference
             android:key="@string/preference_key_ts"
             android:summary=""
-            android:title="Enable quiet period"></SwitchPreference>
+            android:title="Enable quiet period" />
         <com.intuitlabs.android.moneywatch.TimePreference
             android:dependency="@string/preference_key_ts"
             android:key="@string/preference_key_t0"

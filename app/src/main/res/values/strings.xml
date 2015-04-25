@@ -24,6 +24,7 @@
     <string name="preference_key_demo">demo</string>
 
     <string name="preference_key_archive">archive</string>
+    <string name="preference_key_size">size</string>
 
     <string name="preference_key_ts">ts</string>
     <string name="preference_key_t0">t0</string>
@@ -32,5 +33,7 @@
     <!-- Dialog Resources -->
     <string name="dialog_positive">Set</string>
     <string name="dialog_negative">Cancel</string>
+    <string name="img_desc">NYC Wallstreet</string>
+    <string name="icon_desc">Application Icon</string>
 
 </resources>

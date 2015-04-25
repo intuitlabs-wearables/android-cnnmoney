@@ -58,24 +58,23 @@ public class GCMIntentService extends GCMBaseIntentService {
     /**
      * Register with GCM, which will eventually trigger {@link #onRegistered} to be called.
      *
-     * @param context {@link Context} Application context
      * @param userid  {@link String} how your app refers to this user
      */
-    public static void register(final Context context, final String userid) {
+    public static void register( final String userid) {
         GCMIntentService.userid = userid;
-        GCMIntentService.groups = context.getResources().getStringArray(R.array.feed_defaults);
+        GCMIntentService.groups = App.getContext().getResources().getStringArray(R.array.feed_defaults);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(App.getContext());
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(context.getString(R.string.preference_key_userid), userid);
-        editor.putBoolean(context.getString(R.string.preference_key_sync), true);
+        editor.putString(App.getContext().getString(R.string.preference_key_userid), userid);
+        editor.putBoolean(App.getContext().getString(R.string.preference_key_sync), true);
         editor.apply();
 
         PushNotificationsV2.URL_OVERRIDE = REG_URL;
         PushNotificationsV2.Environment environment = PushNotificationsV2.Environment.SANDBOX;
         PushNotificationsV2.initialize(INTUIT_SENDER_ID, GCM_PROJECT_NUMBER, environment);
         PushNotificationsV2.setLogging(true);
-        PushNotificationsV2.registerForGCMNotifications(context);
+        PushNotificationsV2.registerForGCMNotifications(App.getContext());
     }
 
     /**
@@ -121,17 +120,17 @@ public class GCMIntentService extends GCMBaseIntentService {
     @Override
     protected void onMessage(final Context context, final Intent intent) {
         final String message = intent.getStringExtra("payload").replaceAll("[\r\n]+$", "");
-        Archive.getInstance().addItem(message);
         Log.v(LOG_TAG, "Received a notification: " + message);
 
-        if (!TimePreference.isNowQuietTime(context)) {
+        if (!TimePreference.isNowQuietTime()) {
             Log.v(LOG_TAG, "Not inside quiet time, so let's send a new notification");
             try {
-                IWearNotificationSender.Factory.getsInstance().createNotificationSender(IWearNotificationType.ANDROID, this, message).sendNotification(this);
+                IWearNotificationSender.Factory.getsInstance().createNotificationSender(IWearNotificationType.ANDROID, App.getContext(), message).sendNotification(App.getContext());
             } catch (IntuitWearException e) {
                 Log.e(LOG_TAG, e.toString());
             }
         }
+        Archive.getInstance().addItem(message);
     }
 
     /**

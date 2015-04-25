@@ -53,7 +53,7 @@ import java.util.Set;
  * Additionally, two buttons are available:
  * <ul>
  * <li>To synchronize info source selection with the PNG server, in case a previous selection could not be saved. </li>
- * <li>To simulate amn incoming notification</li>
+ * <li>To simulate an incoming notification</li>
  * </ul>
  *
  * @inheritDoc
@@ -65,16 +65,14 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
      * The selection of information sources, translates directly into PNG Groups.
      * Here we register a user with a PNG group for every selected information-source and unregister the user from
      * every png group that is mapped to unselected information source.
-     *
-     * @param context {@link android.content.Context}
      */
-    public static void syncGroups(final Context context) {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final Set<String> defaultFeeds = new HashSet<>(Arrays.asList(context.getResources().getStringArray(R.array.feed_defaults)));
-        final Set<String> ss = prefs.getStringSet(context.getString(R.string.preference_key_sources), defaultFeeds);
-        final String userId = prefs.getString(context.getString(R.string.preference_key_userid), "");
+    public static void syncGroups() {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+        final Set<String> defaultFeeds = new HashSet<>(Arrays.asList(App.getContext().getResources().getStringArray(R.array.feed_defaults)));
+        final Set<String> ss = prefs.getStringSet(App.getContext().getString(R.string.preference_key_sources), defaultFeeds);
+        final String userId = prefs.getString(App.getContext().getString(R.string.preference_key_userid), "");
 
-        final String[] s0 = context.getResources().getStringArray(R.array.feed_values);
+        final String[] s0 = App.getContext().getResources().getStringArray(R.array.feed_values);
 
         for (final String s : s0) { // all group values
             boolean subscribe = false;
@@ -89,16 +87,16 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                     @Override
                     public void run() {
                         super.run();
-                        PushNotificationsV2.removeUserFromGroup(context, userId, s, new RemoveUserFromGroupCallback() {
+                        PushNotificationsV2.removeUserFromGroup(App.getContext(), userId, s, new RemoveUserFromGroupCallback() {
                             @Override
                             public void onUserRemovedFromGroup() {
-                                setInSyncFlag(context, true);
+                                setInSyncFlag(true);
                                 Log.i(LOG_TAG, "syncGroupNames onUserRemovedFromGroup " + s);
                             }
 
                             @Override
                             public void onError(final String s, final String s2) {
-                                setInSyncFlag(context, false);
+                                setInSyncFlag(false);
                                 Log.e(LOG_TAG, "syncGroupNames removeUserFromGroup " + s + s2);
                             }
                         });
@@ -111,18 +109,18 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             @Override
             public void run() {
                 super.run();
-                PushNotificationsV2.registerUser(context, userId, UserTypeEnum.OTHER, ss.toArray(new String[ss.size()]),
-                        GCMRegistrar.getRegistrationId(context),
+                PushNotificationsV2.registerUser(App.getContext(), userId, UserTypeEnum.OTHER, ss.toArray(new String[ss.size()]),
+                        GCMRegistrar.getRegistrationId(App.getContext()),
                         new RegisterUserCallback() {
                             @Override
                             public void onUserRegistered() {
-                                setInSyncFlag(context, true);
+                                setInSyncFlag(true);
                                 Log.i(LOG_TAG, "syncGroupNames onUserRegistered for new groups " + ss.size());
                             }
 
                             @Override
                             public void onError(final String s, final String s2) {
-                                setInSyncFlag(context, false);
+                                setInSyncFlag(false);
                                 Log.e(LOG_TAG, "syncGroupNames registerUser " + s + s2);
                             }
                         });
@@ -136,23 +134,22 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
      * @param context {@link android.content.Context}
      */
     static void syncIfNeeded(final Context context) {
-        if (!PreferenceManager.getDefaultSharedPreferences(context).getBoolean(context.getString(R.string.preference_key_sync), false)) {
+        if (!PreferenceManager.getDefaultSharedPreferences(App.getContext()).getBoolean(context.getString(R.string.preference_key_sync), false)) {
             Log.i(LOG_TAG, "New sync. attempt w/ PNG Server");
-            syncGroups(context);
+            syncGroups();
         }
     }
 
     /**
      * Sets a flag an keeps it in DefaultSharedPreferences, indicating if the last sync attempt was successful or not.
      *
-     * @param context {@link android.content.Context}
-     * @param inSync  {@link boolean}
+     * @param inSync {@link boolean}
      */
-    private static void setInSyncFlag(final Context context, final boolean inSync) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    private static void setInSyncFlag(final boolean inSync) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(App.getContext());
 
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(context.getString(R.string.preference_key_sync), inSync);
+        editor.putBoolean(App.getContext().getString(R.string.preference_key_sync), inSync);
         editor.apply();
         if (!inSync) {
             Log.i(LOG_TAG, "setInSyncFlag has been set to false");
@@ -173,7 +170,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
-                    syncGroups(getActivity().getApplicationContext());
+                    syncGroups();
                     getActivity().getFragmentManager().popBackStack();
                     return true;
                 }
@@ -186,7 +183,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             btnDemo.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
-                    createDemoNotification(getActivity().getApplicationContext());
+                    createDemoNotification(App.getContext());
                     getActivity().getFragmentManager().popBackStack();
                     return true;
                 }
@@ -248,10 +245,12 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         if (isAdded()) {
             if (key.equals(getString(R.string.preference_key_sources))) {
                 Log.d(LOG_TAG, "Source selection changed");
-                syncGroups(this.getActivity().getApplicationContext());
+                syncGroups();
             } else if (key.equals(getString(R.string.preference_key_sync))) {
                 boolean inSync = getPreferenceScreen().getSharedPreferences().getBoolean(getString(R.string.preference_key_sync), false);
                 findPreference(getString(R.string.preference_key_sync)).setEnabled(!inSync);
+            } else if (key.equals(getString(R.string.preference_key_size))) {
+                Archive.getInstance().addItem(null); // shrinks the archive array if needed.
             }
         }
     }
@@ -260,23 +259,17 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
      * Create a demo notification
      */
     private void createDemoNotification(final Context context) {
-        if (!TimePreference.isNowQuietTime(context)) {
-            new Thread() {
-                @Override
-                public void run() {
-                    super.run();
-                    final String message = ContentBuilder.getAsset(context, "notification.json");
-                    Archive.getInstance().addItem(message);
-                    try {
-                        Log.v(LOG_TAG, "Not inside quiet time, so let's display a notification :" + message);
-                        // Create a Notification
-                        IWearNotificationSender.Factory.getsInstance().createNotificationSender(IWearNotificationType.ANDROID, context, message).sendNotification(context);
+        final String message = ContentBuilder.getAsset(context, "notification.json");
+        Log.v(LOG_TAG, "Received a notification: " + message);
 
-                    } catch (IntuitWearException e) {
-                        Log.e(LOG_TAG, e.toString());
-                    }
-                }
-            }.start();
+        if (!TimePreference.isNowQuietTime()) {
+            Log.v(LOG_TAG, "Not inside quiet time, so let's send a new notification");
+            try {
+                IWearNotificationSender.Factory.getsInstance().createNotificationSender(IWearNotificationType.ANDROID, context, message).sendNotification(context);
+            } catch (IntuitWearException e) {
+                Log.e(LOG_TAG, e.toString());
+            }
         }
+        Archive.getInstance().addItem(message);
     }
 }

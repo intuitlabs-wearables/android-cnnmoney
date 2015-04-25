@@ -24,18 +24,9 @@ package com.intuitlabs.android.moneywatch;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import com.intuit.intuitwear.notifications.ContentBuilder;
-
 public class Archive {
     private static final Archive archive = new Archive();
     private static final String DELIMITER = "<<<>>>";
-    private static final int MAX = 12;
-
-    private Archive() {
-        if (null == getItems()) {
-            addItem(ContentBuilder.getAsset(App.getContext(), "notification.json"));
-        }
-    }
 
     public static Archive getInstance() {
         return archive;
@@ -47,15 +38,22 @@ public class Archive {
      * @param item {@link String} - original JSON payload
      */
     public void addItem(final String item) {
-        final String KEY = App.getContext().getString(R.string.preference_key_archive);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+        final int MAX = prefs.getInt(App.getContext().getString(R.string.preference_key_size), 12);
+        final String KEY = App.getContext().getString(R.string.preference_key_archive);
 
         String archive = prefs.getString(KEY, "");
-        if (archive.split(DELIMITER).length >= MAX - 1) {
-            int k = archive.lastIndexOf(DELIMITER);
-            archive = archive.substring(0, k);
+        if (item!=null) {
+            archive = item + DELIMITER + archive;
         }
-        archive = item + DELIMITER + archive;
+        String[] items = archive.split(DELIMITER);
+
+        if (items.length > MAX) {
+            archive = "";
+            for (int i = 0; i < MAX; i++) {
+                archive += items[i] + DELIMITER;
+            }
+        }
 
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(KEY, archive);
@@ -66,6 +64,6 @@ public class Archive {
         final String KEY = App.getContext().getString(R.string.preference_key_archive);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(App.getContext());
         final String archive = prefs.getString(KEY, null);
-        return archive == null ? null : archive.split(DELIMITER);
+        return archive == null ? new String[0] : archive.split(DELIMITER);
     }
 }

@@ -28,12 +28,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.intuitlabs.android.moneywatch.DismissAndView">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="com.intuitlabs.android.moneywatch" />
-            </intent-filter>
-        </activity>
+        <activity android:name="com.intuitlabs.android.moneywatch.DismissAndView" />
 
         <receiver
             android:name="com.google.android.gcm.GCMBroadcastReceiver"

@@ -44,7 +44,7 @@ import java.util.Locale;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class TimePreference extends DialogPreference {
-    private static final String LOG_TAG = TimePreference.class.getName();
+    private static final String LOG_TAG = NumberPreference.class.getName();
     private static final String DEFAULT_TIME = "00:00";
 
     private int mHour = 0;
@@ -78,17 +78,16 @@ public class TimePreference extends DialogPreference {
     /**
      * Find out if a quiet time has been defined and if the current time would fall into this period.
      *
-     * @param context {@link Context}
      * @return {@link boolean} if now is inside the enabled quiet time
      */
-    public static boolean isNowQuietTime(final Context context) {
-        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+    public static boolean isNowQuietTime() {
+        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(App.getContext());
         boolean result = false;
 
-        if (sp.getBoolean(context.getString(R.string.preference_key_ts), false)) {
+        if (sp.getBoolean(App.getContext().getString(R.string.preference_key_ts), false)) {
 
-            final String s0 = sp.getString(context.getString(R.string.preference_key_t0), DEFAULT_TIME);
-            final String s1 = sp.getString(context.getString(R.string.preference_key_t1), DEFAULT_TIME);
+            final String s0 = sp.getString(App.getContext().getString(R.string.preference_key_t0), DEFAULT_TIME);
+            final String s1 = sp.getString(App.getContext().getString(R.string.preference_key_t1), DEFAULT_TIME);
             final String sn = new SimpleDateFormat("HH:mm", Locale.US).format(new Date());
 
             final Date d0 = TimePreference.toDate(s0);

@@ -27,19 +27,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.intuit.intuitwear.notifications.AndroidNotification;
 
 public class DismissAndView extends Activity {
+    private static final String LOG_TAG = DismissAndView.class.getName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         final int notificationId = getIntent().getIntExtra(AndroidNotification.EXTRA_NOTIFICATION_ID, -1);
         final String[] params = getIntent().getStringArrayExtra(AndroidNotification.EXTRA_INTENT_PARAMETERS);
 
         if (params != null && 0 < params.length) {
-            final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.cancel(notificationId);
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(notificationId);
+            Log.v(LOG_TAG, "Canceled Notification: " + notificationId);
+
             startActivity(new Intent(Intent.ACTION_VIEW)
                     .setData(Uri.parse(params[0]))
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -47,3 +52,4 @@ public class DismissAndView extends Activity {
         }
     }
 }
+
